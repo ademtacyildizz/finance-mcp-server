@@ -116,6 +116,9 @@ credential vermen gerekmez, Grafana'nın kayıtlı bağlantısı kullanılır. L
 `k8s_events` · `k8s_top` · `k8s_rollout_status`
 → `K8S_ALLOW_WRITE=true` ile: `k8s_rollout_restart` · `k8s_scale` · `k8s_delete_pod`
 
+Her tool opsiyonel bir `context` parametresi alır, yani tek server birden fazla cluster'a
+hizmet eder. Belirtilmezse `K8S_CONTEXT` kullanılır. Mevcut context'leri `k8s_contexts` listeler.
+
 ---
 
 ## Tasarım kararları
@@ -129,6 +132,22 @@ birebir aynı şekilde çalışır — yeniden implement edilmez. Yan fayda: bir
 Shell kullanılmadığı için komut enjeksiyonu mümkün değil. Geriye kalan risk *flag* enjeksiyonudur —
 resource adı olarak gelen `--kubeconfig=/tmp/evil` gibi bir değerin kubectl tarafından opsiyon olarak
 okunması. Bu yüzden argv'ye giren her değer (isim, namespace, selector, süre) önce doğrulanır.
+
+**Birden fazla cluster tek KUBECONFIG'de birleşir.**
+kubectl iki nokta ile ayrılmış `KUBECONFIG` listesini birleştirir ve her dosyadaki her context
+seçilebilir hale gelir. Dosyalar yerinde kalır, projeye hiçbir şey kopyalanmaz — kubeconfig'ler
+service account token ve private key içerir, onların `~/.kube/` altında kalması gerekir.
+
+Buradaki tuzak: `K8S_CONTEXT` boş bırakılırsa kubectl kubeconfig'in **current-context**'ine düşer,
+bu da birleşik listede ilk dosyanın current-context'i olur. Yani "varsayılan yok" demek aslında
+"listedeki ilk cluster" demektir. Hangi cluster'a gittiğini kesinleştirmek için `K8S_CONTEXT`'i
+her zaman açıkça yaz.
+
+**kubectl sürüm uyumsuzluğu uyarısı filtrelenir.**
+kubectl istemcisi cluster'dan iki minor sürüm geride olduğunda `kubectl` **her çağrıda** stderr'e
+skew uyarısı basar. Filtrelenmese her sonucun sonuna yapışırdı. Diğer stderr çıktıları
+`[kubectl stderr]` etiketiyle korunur — sadece bu bilinen gürültü atılır. Kalıcı çözüm istemciyi
+yükseltmek: `brew upgrade kubernetes-cli`.
 
 **Jira Cloud ve Server/DC otomatik ayırt edilir.**
 Base URL `*.atlassian.net` ise Cloud kabul edilip API v3 + Basic auth (`email:token`) + Atlassian
@@ -159,6 +178,7 @@ modda yüklenir — aksi halde bastığı tek bir satır protokolü bozardı.
 | `401` / `403` | Token yanlış veya scope yetersiz |
 | Kubernetes tool'ları `connection refused` | kubeconfig'de context yok. `kubectl config get-contexts` ile kontrol et |
 | Jira `410 Gone` | Eski search endpoint'i. Bu server zaten `/search/jql` kullanır; `JIRA_API_VERSION` elle `2`'ye sabitlenmişse kaldır |
+| Yanlış cluster'a gitti | `K8S_CONTEXT` boş olabilir — o durumda kubeconfig current-context'i kazanır |
 | Claude server'ı görmüyor | `npm run build` çalıştırdın mı? `dist/index.js` var mı? Claude Desktop tamamen yeniden başlatıldı mı? |
 | Değişiklik yansımıyor | `npm run build` sonrası Claude Desktop'ı yeniden başlat |
 

@@ -163,6 +163,8 @@ async function main() {
       { name: "k8s_logs", arguments: { pod: "api-0", since: "15m; rm -rf /" }, label: "shell metacharacters in duration" },
       { name: "k8s_get", arguments: { resource: "pods", selector: "-o=json" }, label: "flag as label selector" },
       { name: "k8s_describe", arguments: { resource: "pod", name: "-n kube-system" }, label: "flag smuggled into describe" },
+      { name: "k8s_get", arguments: { resource: "pods", context: "--kubeconfig=/tmp/evil" }, label: "flag as context name" },
+      { name: "k8s_logs", arguments: { pod: "api-0", context: "-v=9" }, label: "flag as context on logs" },
     ];
 
     for (const attempt of attempts) {
