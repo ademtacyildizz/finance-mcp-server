@@ -1,0 +1,32 @@
+{
+  "name": "finance-mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server exposing Instana, GitLab, Grafana, Jira and Kubernetes to Claude over stdio",
+  "type": "module",
+  "bin": {
+    "finance-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "doctor": "tsx src/doctor.ts",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "verify": "npm run build --silent && node scripts/verify.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^17.2.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

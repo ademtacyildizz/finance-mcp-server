@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "finance": {
+      "command": "node",
+      "args": ["/Users/adem.tacyildiz/Desktop/finance-mcp-server/dist/index.js"]
+    }
+  }
+}
